@@ -1,0 +1,33 @@
+
+>>>>>>>>>> RELEASE 0.6.1 (development) >>>>>>>>>>>>>>>>>>>>>
+
+- Review  error severities
+OK - Prepare API for stability and compatibility check
+- Documentation
+
+>>>>>>>>>> RELEASE 0.6.2 (stable) >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+- Intensive testing and bug fixing 
+
+>>>>>>>>>> RELEASE 0.6.3 (development) >>>>>>>>>>>>>>>>>>>>>
+
+- Improves to public tree
+	-> Expose node extended info. Always compile it.
+	   (little memory cost)
+	-> Review builder / tree / node relation 
+	-> Optimize storage of children in node?
+	-> Inode object?
+- Expose Builder and Streams
+- Implement filters: compression, encryption...
+- Consider some kind of plugin system for Builders, Filesystems and Filters.
+- ECMA-119, Joliet, and ISO-9660:1999 writers can share most of the code. 
+  Create a new writer as a generalization of these. 
+- Update Java bindings
+
+>>>>>>>>>>> ......
+
+>>>>>>>>>>> RELEASE 1.0.0 (stable) >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+- UDF
+- HFS
+

@@ -1,0 +1,26 @@
+== Sun Apr 27 2008 ==
+
+Libisofs v0.6.4
+===============
+
+- Extended information: iso_node_add_xinfo()
+- New node iteration: iso_dir_find_children()
+- Custom image file content via iso_tree_add_new_file()
+- Missing feature added to map a disk file to an
+  arbitrary image file path via iso_tree_add_new_node()
+- Obtain image path of a node object via iso_tree_get_node_path()
+- Various bugfixes
+
+== Fri Feb 22 2008 ==
+
+Libisofs v0.6.2.1
+=================
+
+- FIX: missing buffer.h in tarball
+
+== Thu Feb 14 2008 ==
+
+Libisofs v0.6.2
+================
+
+- Initial release

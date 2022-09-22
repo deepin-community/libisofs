@@ -1,0 +1,506 @@
+===============================================================================
+                      LIBISOFS DEVELOPMENT TUTORIAL
+===============================================================================
+
+Creation date: 2008-Jan-27
+Author: Vreixo Formoso
+_______________________________________________________________________________
+
+This is a little tutorial of how to use libisofs library for application
+development.
+
+Contents:
+---------
+
+1. Introduction
+   1.1 Library initialization
+   1.2 Image context
+   1.3 Error reporting
+2. Creating an image
+   2.1 Image tree manipulation
+   2.2 Set the write options
+   2.3 Obtaining a burn_source
+3. Image growing and modification
+   3.1 Growing vs Modification
+   3.2 Image import
+   3.3 Generating a new image
+4. Bootable images
+5. Advanced features
+
+
+-------------------------------------------------------------------------------
+1. Introduction
+-------------------------------------------------------------------------------
+
+[TODO some lines about refcounts]
+
+-------------------------------------------------------------------------------
+1.1. Library initialization
+
+Before any usage of the library, you have to call
+
+	iso_init()
+
+in the same way, when you have finished using the library, you should call
+
+	iso_finish()
+
+to free all resources reserved by the library.
+
+-------------------------------------------------------------------------------
+1.2. Image context
+
+Libisofs is image-oriented, the core of libisofs usage is the IsoImage object.
+Thus, the first you need to do is to get your own IsoImage object:
+
+	IsoImage *my_image;
+	iso_image_new("NEW DISC", &my_image);
+
+An IsoImage is a context for image creation. It holds the files that will be 
+added to image, other related information and several options to customize
+the behavior of libisofs when working with such Image. i.e., an IsoImage is
+a context for libisofs operations. As such, you can work with several image
+contexts at a time. 
+
+-------------------------------------------------------------------------------
+1.3. Error reporting
+
+In libisofs error reporting is done in two ways: with the return value of
+the functions and with the message queue. 
+
+Error codes are negative numbers, defined in "libisofs.h" header. An
+error code is associated with a given severity, either "DEBUG", "UPDATE",
+"NOTE", "HINT", "WARNING", "SORRY", "FAILURE" and "FATAL". For the meaning
+of each severity take a look at private header "libiso_msgs.h". Errors 
+reported by function return value are always "FAILURE" or "FATAL". Other kind
+of errors are only reported with the message queue. You can get the severity
+of any error message with iso_error_get_severity() function.
+
+First of all, most libisofs functions return an integer. If such integer is 
+a negative number, it means the function has returned an error. The error code
+and its severity is encoded in the return value (take a look at error codes in 
+libisofs.h header).
+
+Additionally, libisofs reports most of its errors in a message queue. Error
+messages on that queue can be printed directly to stderr or programmatically
+retrieved. First of all, you should set the severity threshold over which an
+error is printed or enqueued, with function:
+
+	iso_set_msgs_severities()
+
+Errors enqueued can be retrieved with function:
+
+	iso_obtain_msgs()
+	
+Together with the code error, a text message and its severity, this function
+also returns the image id. This is an identifier that uniquely identifies a
+given image context. You can get the identifier of each IsoImage with the
+
+	iso_image_get_msg_id()
+
+and that way distinguish what image has issued the message.
+
+
+-------------------------------------------------------------------------------
+2. Creating an Image
+-------------------------------------------------------------------------------
+
+An image is built from a set of files that you want to store together in an 
+ISO-9660 volume. We call the "iso tree" to the file hierarchy that will be
+written to image. The image context, IsoImage, holds that tree, together with
+configuration options and other properties of the image, that provide info
+about the volume (such as the identifier, author, etc...).
+
+All configuration options and volume properties are set by its corresponding
+setters (iso_image_set_volset_id(), iso_image_set_publisher_id()...)
+
+To create an image, you have to follow the following steps:
+
+* Obtain the image context.
+    See "1.2 Image context" for details of how to obtain the IsoImage.
+* Set the desired properties
+* Prepare the iso tree with the files you want to add to image.
+    See "2.1 Image tree manipulation" for details
+* Select the options for image generation.
+    See "2.2 Set the write options"
+* Get the burn_source used to actually write the image.
+
+
+-------------------------------------------------------------------------------
+2.1 Image tree manipulation
+
+libisofs maintains in memory a file tree (usually called the iso tree), that 
+represents the files and directories that will be written later to image. You
+are allowed to make whatever changes you want to that tree, just like you do
+to any "real" filesystem, before actually write it to image.
+
+Unlike other ISO-9660 mastering tools, you have full control over the file
+hierarchy that will be written to image, via the libisofs API. You can add
+new files, create any file in image, change its name, attributes, etc The iso
+tree behaves just like any other POSIX filesystem. 
+
+The root of the iso tree is created automatically when the IsoImage is 
+allocated, and you can't replace it. To get a reference to it you can use the
+function:
+
+	iso_image_get_root()
+
+* Iso tree objects
+
+Each file in the image or iso tree is represented by an IsoNode instance. In 
+the same way a POSIX filesystem has several file types (regular files, 
+directories, symlinks...), the IsoNode has several subtypes:
+
+                    IsoNode
+                       |
+        ---------------------------------
+        |         |         |           |
+      IsoDir   IsoFile  IsoSymlink  IsoSpecial
+
+where
+
+ - IsoDir represents a directory
+ - IsoFile represents a regular file
+ - IsoSymlink represents a symbolic linke
+ - IsoSpecial represents any other POSIX file, i.e. block and character 
+   devices, FIFOs, sockets.
+
+You can obtain the concrete type of an IsoNode with the iso_node_get_type()
+function.
+
+Many libisofs functions take or return an IsoNode. Many others, however,
+require an specific type. You can safety cast any subtype to an IsoNode
+object. In the same way, after ensuring you are dealing with the correct
+subtype, you can downcast a given IsoNode to the specific subtype.
+
+	IsoDir *dir;
+	IsoNode *node;
+
+	node = (IsoNode*) dir;
+
+	if (iso_node_get_type(node) == LIBISO_DIR) {
+	    dir = (IsoDir*) node;
+	    ...
+	}
+
+or with the provided macros:
+
+	IsoDir *dir;
+	IsoNode *node;
+
+	node = ISO_NODE(dir);
+
+	if (ISO_NODE_IS_DIR(node)) {
+	    dir = ISO_DIR(node);
+	    ...
+	}
+
+* Adding files to the image
+
+Files can be added to the image or iso tree either as new files or as files
+from the filesystem.
+
+In the first case, files are created directly on the image. They do not
+correspond to any file in the filesystem. Provided functions are: 
+
+	- iso_tree_add_new_dir()
+	- iso_tree_add_new_symlink()
+	- iso_tree_add_new_special()
+
+On the other side, you can add local files to the image, either with the
+
+	iso_tree_add_node()
+
+or with
+
+	iso_tree_add_dir_rec().
+
+The first is intended to add a single file, while the last can be used to add,
+recursively, a full directory (see below for details).
+
+It is important to note that libisofs doesn't store any kind of link between
+the IsoNode and the filesystem file it was created from. The above functions
+just initialize a newly created IsoNode with the attributes of a given file in
+the filesystem. After that, you can move the original file, change its 
+attributes or even delete it. The IsoNode in the image tree remains with the
+original attributes. One exception to this rule are the contents of a regular
+file. Libisofs does not make any copy of those contents until they're actually
+written to image. Thus, you shouldn't modify, move or delete regular files
+after adding them to the IsoImage.
+
+
+* Recursive directory addition.
+
+One common use case is to add a local directory to the image. While this can
+be done with iso_tree_add_node(), handling the addition of directory children
+in the application, libisofs provides a function suitable for this case:
+
+	iso_tree_add_dir_rec()
+	
+that takes care of adding all files inside a directory, recursing on directory
+children. By default, this function adds all children. However, it is usual 
+that you don't want really this. For example, you may want to exclude some
+kind of files (backup files, application sockets,...). Libisofs provides
+several functions to customize the behavior of that function:
+
+	- iso_tree_set_follow_symlinks()
+	- iso_tree_set_ignore_hidden()
+	- iso_tree_set_ignore_special()
+	- iso_tree_add_exclude()
+
+* Operations on iso tree
+
+[TODO briefly explain how to add node, change attributes, ...]
+
+* Replace mode
+
+[TODO]
+
+-------------------------------------------------------------------------------
+2.2 Set the write options
+
+Once you have prepared the iso tree, it is time to select the options for the
+image writing. 
+
+These options affect the characteristics of the filesystem to create in the 
+image, but also can control how libisofs generates the image.
+
+First of all you have to get an instance of IsoWriteOpts, with the function
+
+	iso_write_opts_new()
+
+The several options available can be classified in:
+
+- Extensions to add to the ISO-9660 image:
+
+	iso_write_opts_set_rockridge()
+	iso_write_opts_set_joliet()
+	iso_write_opts_set_iso1999()
+	
+RockRidge is highly recommended, in fact you should use it in all image. Joliet
+is needed if you want to use your images in Windows system. Nowadays,
+ISO-9660:1999 is no much useful, so in most cases you don't want such 
+extension.
+
+- ISO-9660 options:
+
+	iso_write_opts_set_iso_level()
+	iso_write_opts_set_omit_version_numbers()
+	iso_write_opts_set_allow_deep_paths()
+	iso_write_opts_set_allow_longer_paths()
+	iso_write_opts_set_max_37_char_filenames()
+	iso_write_opts_set_no_force_dots()
+	iso_write_opts_set_allow_lowercase()
+	iso_write_opts_set_allow_full_ascii()
+
+These control the options for the ISO-9660 filesystem. In most cases you won't
+care about them, as it is the RockRidge or Joliet extensions what determine the
+properties of the files once the image is mounted.
+
+- File attributes options
+
+	iso_write_opts_set_replace_mode()
+	iso_write_opts_set_default_dir_mode()
+	iso_write_opts_set_default_file_mode()
+	iso_write_opts_set_default_uid()
+	iso_write_opts_set_default_gid()
+	iso_write_opts_set_replace_timestamps()
+	iso_write_opts_set_default_timestamp()
+	iso_write_opts_set_always_gmt()
+	
+They allow to set default attributes for files in image, despite of the real
+attributes of the file on the local filesystem.
+
+-------------------------------------------------------------------------------
+2.3 Obtaining a burn_source
+
+Finally, you get the burn_source used to write the image with the function:
+
+	iso_image_create_burn_source()
+	
+The returned burn_source is suitable for using with libburn, to directly burn
+the image to a disc. Alternatively, you can use burn_source read() to get
+the image contents (for example, to write them to a file, pipe...).
+
+Before creating the burn_source, libisofs computes the size of the image, so
+the get_size() function of the burn_source always returns the final image 
+size. It also starts a writing thread. All the operations needed to generate
+the image are done by this thread, including read the original files contents.
+The image is writing to a FIFO buffer, from which the burn_source will read.
+The size of the buffer can be set in advanced with a property of the
+IsoWriteOpts struct:
+
+	iso_write_opts_set_fifo_size()
+
+You can get the state of the buffer in any moment, with the function:
+
+	iso_ring_buffer_get_status()
+	
+You can also cancel the writer thread at any time, with the cancel() function
+of the burn_source.
+
+
+-------------------------------------------------------------------------------
+3. Image growing and modification
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+3.1 Growing vs Modification
+
+Libisofs is not restricted only to create new images. It can also be used to
+modify existing images. It supports two kind of image modifications, that we
+have called image growing and image modification:
+
+Image modification consists in generating a new image, based on the contents
+of an existing image. In this mode, libisofs takes an image, the users modifies
+its contents (adding new files, removing files, changing their names...), and
+finally libisofs generates a completely new image.
+
+On the other side, image growing is similar, with the difference that the new
+image is dependent on the other, i.e., it refers to files of the other image.
+Thus, it can't be mounted without the old image. The purpose of this kind of
+images is to increment or add files to a multisession disc. The new image only
+contains the new files. Old files are just references to the old image blocks.
+
+The advantage of the growing approach is that the generated image is smaller,
+as only the new files are written. This mode is suitable when you just want to
+add some files to a very big image, or when dealing with write-once media, such
+as CD-R. Both the time and space needed for the modification is much less than
+with normal image modify.
+
+The main problem of growing is that the new image needs to be recorded together 
+with the old image, in order to be mountable. The total size of the image 
+(old + new) is bigger (even much bigger) than a completely new image. So, if 
+you plan to distribute an image on Internet, or burn it to a disc, generate a
+completely new image is usually a better alternative. 
+
+To be able to mount a grown image, the OS needs to now you have appended new 
+data to the original image. In multisession media (such as CD-R), the new data
+is appended as a new session, so the OS can identify this and mount the image
+propertly. However, when dealing with non-multisession media (such as DVD+RW)
+or plain .iso files, the new data is just appended at the end of the old image,
+and the OS has no way to know that the appended data is in fact a "new 
+session". The method introduced by Andy Polyakov in growisofs can be used in
+those cases. It consists in overwrite the volume descriptors of the old image
+with a new ones that refer to the newly appended contents.
+
+-------------------------------------------------------------------------------
+3.2 Image import
+
+The first thing you need to do in order to modify or grow an image is to import
+it, with the function:
+
+	iso_image_import()
+	
+It takes several arguments. 
+
+First, the image context, an IsoImage previously obtained with iso_image_new().
+In most cases you will want to use an empty image. However, if you have already
+added files to the image, they will be removed and replaced with the contents
+of the image being imported.
+
+The second parameter is an IsoDataSource instance. It abstracts the original 
+image, and it is used by libisofs to access its contents. You are free to 
+implement your own data source to access image contents. However, libisofs has
+a simple implementation suitable for reading images on the local filesystem,
+that can be used for import both .iso files and inserted media, via the block
+device and POSIX functions. You can get it with 
+
+	iso_data_source_new_from_file()
+	
+The third parameter of iso_image_import() is a pointer to an IsoReadOpts 
+struct. It holds the options for image reading. You get it with:
+
+	iso_read_opts_new()
+	
+and after calling iso_image_import() you should free it with
+
+	iso_read_opts_free()
+	
+Some options are related to select what extensions to read. Default options
+are suitable for most users.
+
+	iso_read_opts_set_no_rockridge()
+	iso_read_opts_set_no_joliet()
+	iso_read_opts_set_no_iso1999()
+	iso_read_opts_set_preferjoliet()
+	
+If RockRidge extensions are not present, many files attributes can't be 
+obtained. In those cases libisofs uses default values. You have options to
+configure what default values to use.
+
+	iso_read_opts_set_default_uid()
+	iso_read_opts_set_default_gid()
+	iso_read_opts_set_default_permissions()
+	
+If the original image has been created in another system with a different
+charset, you may want to use:
+
+	iso_read_opts_set_input_charset()
+	
+to specify the encoding of the file names on image.
+
+Finally, to import multisession images, you should tell libisofs that it must
+read the last session. For that, you must set the block where the last session
+starts:
+
+	iso_read_opts_set_start_block()
+
+The last parameter for iso_image_import(), optional, is a pointer that will
+be filled with a library-allocated IsoReadImageFeatures, that lets you access
+some information about the image: size, extensions used,...
+
+[TODO: explain that iso_image_import uses dir rec options]
+
+-------------------------------------------------------------------------------
+3.3 Generating a new image
+
+After importing the image, the old image tree gets loaded. You are free to 
+make any changes to it: add new files, remove files, change names or 
+attributes... Refer to "2.1 Image tree manipulation" for details.
+
+When it is ready, you can now create the new image. The process is the same as
+explained in "2.2 Set the write options" and "2.3 Obtaining a burn_source".
+However, there are some write options that should be taken into account.
+
+First of all, you must select whether you want to grow or modify the image 
+(read "3.1 Growing vs Modification" for details). You must call
+
+	iso_write_opts_set_appendable()
+	
+An appendable image leads to image growing, and a non-appendable image leads
+to a completelly new image (modification). An appendable image will be appended
+after the old image (in a new session, for example). Thus, in those cases, the 
+first block of the image is not 0. You should set the correct lba of the first
+block with:
+
+	iso_write_opts_set_ms_block()
+
+That is usually the "Next Writable Address" on a multisession media, and a 
+value slightly greater than the old image size on .iso files or DVD+RW media.
+You can obtain the old image size with the iso_read_image_features_get_size()
+function.
+
+In this last case (i.e., on a non multisession media), you will need to
+overwrite the volume descriptors of the old image with the new ones. To do 
+this you need:
+
+- Allocate a buffer of at least 64 KiBs.
+- Initialize it with the first 64 KiBs of the original image.
+- Pass the buffer to libisofs with the iso_write_opts_set_overwrite_buf()
+  option.
+- After appending the new image, you have to overwrite the first 64 KiBs of 
+  the original image with the new content of the buffer.
+
+
+-------------------------------------------------------------------------------
+4. Bootable images
+-------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------
+5. Advanced features
+-------------------------------------------------------------------------------
+
+

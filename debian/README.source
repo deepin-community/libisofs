@@ -1,0 +1,24 @@
+To update this package:
+
+* run "gbp import-orig --uscan"
+* commit the temporary changelog
+* run "cme check dpkg"
+* if needed, run "cme update dpkg-copyright"
+  (See https://github.com/dod38fr/config-model/wiki/Updating-debian-copyright-file-with-cme)
+* run "gbp buildpackage"
+* check the result and fix lintian warnings if possible
+* Run "gbp dch -a" to update debian/changelog from your last commits
+* Run "dch -e" to edit debian/changelog. Edit as needed
+  i.e. remove all details that users don't need.
+  Leave the "UNRELEASED" string
+* commit the new changelog: "git commit debian/changelog"
+* push on salsa: "git push --all && git push --tags" (push all branches)
+
+To upload (for the mentor):
+* prepare the release: run "gbp dch -Ra --dch-opt=-m". Edit if needed.
+* commit the new changelog: "git commit debian/changelog"
+* build the source package: "gbp buildpackage -S --git-tag"
+* upload the package
+* push the tag on Salsa: "gbp push"
+
+For more details on gbp, please see https://honk.sigxcpu.org/projects/git-buildpackage/manual-html/gbp.html

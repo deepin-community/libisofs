@@ -1,0 +1,544 @@
+libisofs-1.5.4.tar.gz Sun Feb 07 2021
+===============================================================================
+* Bug fix: Large amounts of AAIP data or many long file names could cause with
+           zisofs an unreadable filesystem after the warning "Calculated and
+           written ECMA-119 tree end differ"
+* Bug fix: Big-Endian MIPS Volume Header boot file size was rounded up to
+           full 2048. Thanks René Rebe.
+* Bug fix: El Torito production failed if no catalog path is given and the
+           first boot image path contains no slash
+* Bug fix: zisofs production was wrong on big-endian machines
+* Bug fix: Apple Partition Map entries wrote uninitialized data
+* Bug fix: Appended APM partitions without HFS+ production had start and size 1
+* Switched to usage of libjte-2.0.0
+* Implemented production and reading of zisofs2 for files larger than 4 GiB - 1.
+* New struct iso_zisofs_ctrl version 2
+* New API call iso_stream_get_zisofs_par()
+* New API call iso_stream_zisofs_discard_bpt()
+* New API call iso_image_zisofs_discard_bpt()
+* New flag bits 8 to 15 in API call iso_node_zf_by_magic()
+* New API call iso_zisofs_ctrl_susp_z2()
+* New API call iso_read_opts_set_joliet_map(), new default joliet_map=stripped
+* New API calls iso_read_image_features_tree_loaded() and
+  iso_read_image_features_rr_loaded()
+
+libisofs-1.5.2.tar.gz Sat Oct 26 2019
+===============================================================================
+* New API calls iso_write_opts_set_part_type_guid(),
+  iso_write_opts_set_iso_type_guid()
+* New API call iso_nowtime()
+* New flag bit2 of iso_node_set_acl_text() to be verbous about failures
+* Made libisofs ready for building out-of-source. Thanks Ross Burton.
+* Bug fix: Appended GPT partitions were not covered by the protective MBR
+           partition
+* Bug fix: Multi-session emulation spoiled GPT production.
+           "GPT partitions ... overlap". Regression towards 1.4.8
+* Bug fix: Appending partitions 5 to 8 caused damaged ISO filesystems if not
+           for SUN disk label
+* Bug fix: SIGSEGV happened if options bit 14 of
+           iso_write_opts_set_system_area() is set and no El Torito boot image
+           is defined
+
+libisofs-1.5.0.tar.gz Sat Sep 15 2018
+===============================================================================
+* New API call iso_image_get_ignore_aclea(),
+  new iso_image_set_ignore_aclea() and iso_file_source_get_aa_string()
+  flag bit3 to import all xattr namespaces
+* New API calls iso_image_was_blind_attrs(), iso_local_set_attrs_errno().
+* New flag bit7 with iso_local_set_attrs() to avoid unnecessary write attempts.
+* New return value 2 of IsoFileSource.get_aa_string() and iso_local_get_attrs().
+* Now putting user defined padding after appended partitions.
+* Bug fix: Add-on sessions with partition offset claimed too many blocks as
+           size. Regression of version 1.4.8.
+* Bug fix: Long Joliet names without dot were mangled with one character too
+           many. Long Joliet names with leading dot were mangled one char
+           too short.
+* Bug fix: Reading beyond array end for HFS+ production caused SIGSEGV with
+           FreeBSD 11 CLANG -O2. Thanks ASX of GhostBSD.
+
+libisofs-1.4.8.tar.gz Tue Sep 12 2017
+===============================================================================
+* Bug fix: iso_read_opts_set_no_rockridge() did not prevent reading of root
+           SUSP.
+* Bug fix: Non-SUSP data in System Use Area prevented image loading if
+           Rock Ridge was enabled. Thanks to Jonathan Dowland.
+* Bug fix: Protective MBR for GPT could emerge with boot flag set.
+* Bug fix: Appended partitions of size >= 4 GiB led to abort with error message
+           "FATAL : ISO overwrite". Thanks to Sven Haardiek.
+* Bug fix: Bit 15 of iso_write_opts_set_system_area did not work with generic
+           MBR.
+* Bug fix: Keeping and patching of loaded boot images failed.
+           Regression by version 1.4.4.
+* Bug fix: Program crashes by intentionally wrong ISO image input.
+           Found by American Fuzzy Lop and Jakub Wilk.
+           Debian bug reports: 872372, 872475, 872545, 872590, 872761.
+* New API calls el_torito_set_full_load(), el_torito_get_full_load().
+* New API call iso_write_opts_set_iso_mbr_part_type().
+
+
+libisofs-1.4.6.tar.gz Fri Sep 16 2016
+===============================================================================
+* Bug fix: SIGSEGV by NULL when a data file was larger than ISO level allows.
+* Bug fix: Interpretation of 17 digit timestamps was wrong.
+* New API calls iso_generate_gpt_guid() and iso_write_opts_set_gpt_guid().
+* Made several pseudo-random ids reproducible by overriding volume modification
+  time.
+
+libisofs-1.4.4.tar.gz Fri Jul 01 2016
+===============================================================================
+* Bug fix: HFS+ production could cause MBR partition of type 0xEE without GPT.
+* Bug fix: Protective MBR was not produced if no System Area data are given.
+* Bug fix: Protective MBR was not recognized if partition is appended.
+* Bug fix: The HFS+ filesystem was not marked in GPT of GRUB2 hybrid layout.
+* Bug fix: HFS+ directories could announce more children than they actually
+           have.
+* Bug fix: At image loading time GRUB2 MBR was not recognized if the partition
+           table is not the protective one as described by UEFI.
+* Bug fix: Oversized text in ISO_SYSAREA_REPORT_DOC_ALPHA.
+           Thanks to Etienne Bergeron.
+* New pseudo path for El Torito boot images:
+  --interval:appened_partition_N:all::
+* New bit15 with options of iso_write_opts_set_system_area() to enforce
+  MBR bootable/active flag.
+* New API calls iso_write_opts_set_appended_as_apm(),
+  iso_write_opts_set_part_like_isohybrid().
+* Introduced image size tolerance of 300 kB in order to recognize SUN Disk
+  Label that was generated by genisoimage -B "...".
+* Added "extern C" to libisofs.h
+* Removed option --silent from libtool runs.
+
+libisofs-1.4.2.tar.gz Sat Nov 28 2015
+===============================================================================
+* Bug fix: zisofs compression caused SIGSEGV (by reading) with files larger
+           than 524160 KiB.
+* Bug fix: iso_node_get_name() of root node returned NULL pointer rather than
+           an empty string
+* Bug fix: Names read from Joliet tree where stripped of trailing ";1"
+* Now sorting the data file content extents by ECMA-119 tree, rather than
+  by the red-black tree which shall consolidate files with identical
+  source object.
+* New API call iso_read_opts_set_ecma119_map().
+* New AAIP variable isofs.nt records name truncation parameters.
+* Rectified handling of oversized filenames by new API calls:
+  iso_image_set_truncate_mode, iso_image_get_truncate_mode,
+  iso_truncate_leaf_name, iso_image_set_node_name, iso_image_tree_clone,
+  iso_image_add_new_dir, iso_image_add_new_file, iso_image_add_new_special,
+  iso_image_add_new_symlink, iso_image_dir_get_node, iso_image_path_to_node
+* Result of a Coverity audit: 50+ code changes, but no easy-to-trigger bugs
+
+libisofs-1.4.0.tar.gz Sun May 17 2015
+===============================================================================
+* Bug fix: iso_image_report_system_area() caused SIGSEGV by NULL if no valid
+           ISO 9660 image was loeaded. Thanks to OmegaPhil.
+* Bug fix: A SIGSEGV could happen when loading a faulty ISO filesystem.
+           Debian bug 774152. Thanks to Jakub Wilk.
+* Bug fix: Rock Ridge Continuation Area could be produced crossing a block
+           boundary. This is heavily disliked by the Linux kernel and spoils
+           the representation of directories which contain many symbolic links.
+* Bug fix: If iso_write_opts_set_hardlinks() enabled automatic inode numbers,
+           then they did not get into effect with nodes were zisofs decoder
+           filters got attached during the image load process.
+* Bug fix: The header indicator of the last El Torito catalog section header
+           was set to 0x90 rather than 0x91 if more than one boot image is in
+           that section.
+* Bug fix: Only 128 bytes of an emerging GPT header block were zeroized.
+* Bug fix: iso_image_report_system_area() did not show GPT partitions of
+           size 0.
+* Bug fix: A zero sized GPT partition was marked after the last appended
+           GPT partition.
+* Bug fix: GPT production did not yield proper results with appended sessions
+           or with TOC emulation enabled.
+* Increased default weight of El Torito boot catalog to 1 billion.
+* Improved handling of cylinder alignment if the resulting image size is not
+  divisible by 2048. Old behavior was to not align. New is to pad up by a
+  few blocks of 512 bytes.
+* New API call iso_write_opts_set_appended_as_gpt()
+  and marking of appended partitions in GPT if GPT emerges for other reasons.
+* New system area type 6 = DEC Alpha SRM boot sector.
+  New API calls iso_image_set_alpha_boot(), iso_image_get_alpha_boot().
+  Thanks to Helge Deller.
+* New API object iso_interval_reader. Enabling flag bits for older API calls
+  iso_write_opts_set_prep_img(), iso_write_opts_set_efi_bootp(),
+  and iso_write_opts_set_partition_img().
+
+libisofs-1.3.8.tar.gz Sat Jun 28 2014
+===============================================================================
+* Bug fix: Prevent allocation of empty hash tables. Thanks Richard Nolde.
+* Bug fix: Prevent allocation of empty directory children lists.
+           Thanks Richard Nolde.
+* Bug fix: The GUIDs of main GPT and backup GPT differed if more than one
+           System Area was written into the ISO image.
+* New API calls iso_image_report_el_torito() and iso_image_report_system_area()
+* New API call iso_crc32_gpt()
+
+libisofs-1.3.6.tar.gz Tue Mar 04 2014
+===============================================================================
+* Bug fix: Division by zero if HFS+ was combined with TOC emulation for
+           overwritable media.
+* New API call iso_write_opts_set_joliet_utf16() and ability to read Joliet
+  names as UTF-16BE
+* New API call iso_conv_name_chars()
+
+libisofs-1.3.4.tar.gz Thu Dec 12 2013
+===============================================================================
+* Giving sort weight 2 as default to El Torito boot images
+* Encoding HFS+ names in UTF-16 rather than UCS-2.
+
+libisofs-1.3.2.tar.gz Wed Aug 07 2013
+===============================================================================
+* Bug fix: iso_finish() left an invalid global pointer, which a subsequent 
+           call of iso_init() would try to dereference.
+* The sort weight of data files loaded from ISO image is now 2 exp 28 to 1
+  rather than 2 exp 31 - 1 to - 2 exp 31
+
+libisofs-1.3.0.tar.gz Fri May 17 2013
+===============================================================================
+* Bug fix: GPT header CRC was computed from all 512 bytes rather than from 92.
+* Bug fix: Unspecified Expiration Time and Effective Time of ISO volume was
+           represented by 0-bytes rather than ASCII '0' digits.
+* Bug fix: Reserved and unused fields of APM entries were not zeroed.
+* Bug fix: The protective MBR partition for GPT started at block 0 instead of 1.
+* New option bits with el_torito_set_isolinux_options() and
+  iso_write_opts_set_system_area() to control GRUB2 patching of
+  boot image and MBR.
+* New API calls iso_image_set_sparc_core() and iso_image_get_sparc_core().
+
+libisofs-1.2.8.tar.gz Mon Mar 18 2013
+===============================================================================
+* Bug fix: Image size prediction altered the pointers to MD5 of data files
+           which stem from a previous session.
+* Bug fix: Reading damaged Rock Ridge data could cause SIGSEGV by NULL.
+* New API call iso_image_get_pvd_times().
+
+libisofs-1.2.6.tar.gz Tue Jan 08 2013
+===============================================================================
+* Bug fix: Appended partitions did not obey cylinder alignment
+* Bug fix: Non-zero partition offset zeroized the MBR copies of GPT partition
+           table entries
+* Bug fix: Isohybrid production without any boot image led to SIGSEGV by NULL
+* Bug fix: Prevented a memory fault when reading damaged Rock Ridge information
+
+libisofs-1.2.4.tar.gz Fri Jul 20 2012
+===============================================================================
+* Bug fix: Memory corruption when reading bootable image that was truncated
+           before the storage location of the boot catalog
+* Bug fix: Symbol iso_fs_global_id was missing in libisofs.ver.
+* Bug fix: Volume descriptors of Joliet and ISO 9660:1999 beared non-zero
+           Effective Date, involuntarily restricting the early end of
+           their lifetime.
+* Bug fix: File Structure Version field of ISO 9660:1999 Enhanced Volume
+           Descriptor was 1 instead of 2.
+* Bug fix: The separator dot of Joliet names was byte swapped on big-endian
+           machines.
+* Bug fix: Joliet name comparison was done as signed bytes and thus produced
+           a peculiar sorting order.
+* Bug fix: Partition cylinder alignment worked only if both, El Torito and
+           application provided system area data were present.
+* New API function iso_write_opts_set_hfsplus
+* New API functions iso_hfsplus_xinfo_func(), iso_hfsplus_xinfo_new(), and
+  new struct iso_hfsplus_xinfo_data.
+* New API call iso_write_opts_set_hfsp_serial_number()
+* New API calls iso_image_hfsplus_bless and iso_image_hfsplus_get_blessed(),
+  and new public enum IsoHfsplusBlessings.
+* New API calls so_write_opts_set_prep_img(), iso_write_opts_set_efi_bootp()
+* New API call iso_write_opts_set_hfsp_block_size()
+* New API call iso_tree_resolve_symlink()
+* New system area sub type CHRP with iso_write_opts_set_system_area()
+* New option bits 2 to 8 for GPT and APM with el_torito_set_isolinux_options()
+* New flag bit with iso_node_set_attrs() to protect namespace "isofs"
+* New IsoHideNodeFlag value LIBISO_HIDE_ON_HFSPLUS
+
+libisofs-1.2.2.tar.gz Mon Apr 02 2012
+===============================================================================
+* New API call iso_write_opts_set_rr_reloc()
+* Bug fix: Directory name mapping to ISO level 1 was too liberal if
+  iso_write_opts_set_allow_dir_id_ext() was enabled
+* New API call iso_write_opts_set_allow_7bit_ascii()
+* Improved standards compliance for ISO level 1 names with partly relaxed
+  constraints.
+
+libisofs-1.2.0.tar.gz Sat Jan 28 2012
+===============================================================================
+* Extended influence of iso_write_opts_set_dir_rec_mtime() to Joliet and
+  ISO 9660:1999.
+
+libisofs-1.1.6.tar.gz Tue Sep 27 2011
+===============================================================================
+* Bug fix: On Solaris: False out-of-memory errors when writing images.
+* Bug fix: On FreeBSD: No ACLs were recorded.
+* Bug fix: ACL entries of groups and of user id 0 were not properly recorded
+           and cannot be restored.
+* Bug fix: On FreeBSD: The function for restoring ACLs and xattr returned
+           error, even if no xattr were to be restored.
+* New API call iso_local_attr_support()
+* Enabled recording and restoring of extattr on FreeBSD.
+
+libisofs-1.1.4.tar.gz Mon Aug 08 2011
+===============================================================================
+* Bug fix: The function for restoring ACLs and xattr returned error on systems
+           other than Linux and FreeBSD, even if nothing was to be restored.
+
+libisofs-1.1.2.tar.gz Fri Jul 08 2011
+===============================================================================
+* New API call iso_image_get_bootcat()
+
+libisofs-1.1.0.tar.gz Sat Jun 18 2011
+===============================================================================
+* Bug fix: Padding as of iso_write_opts_set_tail_blocks() was added only
+           after cylinder alignment as of iso_write_opts_set_system_area()
+           and thus spoiled this alignment.
+
+libisofs-1.0.8.tar.gz Thu May 12 2011
+===============================================================================
+* Bug fix: iso_write_opts_set_system_area() with system area types
+           1=MIPS Big Endian and 2=MIPS Little Endian caused SIGSEGV.
+* Bug fix: SIGSEGV if the path given by iso_image_add_mips_boot_file()
+           does not exist in the image at image production time.
+* Bug fix: While loading an ISO image: Several reads to malloc
+           memory occured with byte index -1. (Found by Valgrind after
+           years of operation without visible problems.)
+* Bug fix: Closed a memory leak of 32 kB per loaded ISO image.
+
+libisofs-1.0.6.tar.gz Sat Apr 09 2011
+===============================================================================
+* New API call iso_write_opts_set_joliet_long_names()
+* New error codes for oversized file addresses
+
+libisofs-1.0.4.tar.gz Thu Mar 10 2011
+===============================================================================
+* Bug fix: Compilation failed if --disable-zlib was configured
+* Bug fix: isohybrid image size was not aligned to cylinder boundary.
+* New no_md5 value 2 for API call iso_read_opts_set_no_md5()
+* New option bits 8 and 9 with iso_write_opts_set_system_area()
+
+libisofs-1.0.2.tar.gz Tue Feb 23 2011
+===============================================================================
+* Bug fix: iso_write_opts_set_aaip(opts, 1) could cause fatal miscalculation
+           of the root directory size. This eventually truncated directory
+           tree and spoiled all data file content.
+* Bug fix: Volume Descriptor Set Terminator contained non-zero bytes in
+           the reserved field (ECMA-119 8.3.4). The bytes stem from the
+           previously written Volume Descriptor.
+* New API calls iso_tree_clone(), iso_stream_clone.
+* New IsoFileSourceIface version 2 with method clone_src().
+* New IsoStreamIface version 4 with method clone_stream().
+* New public function prototype iso_node_xinfo_cloner.
+* New API calls iso_node_xinfo_make_clonable(), iso_node_xinfo_get_cloner().
+* New public iso_node_xinfo_cloner instance aaip_xinfo_cloner().
+* New API calls iso_node_get_next_xinfo(), iso_node_remove_all_xinfo().
+* New API call iso_node_remove_tree().
+* New API call iso_write_opts_set_old_empty().
+
+libisofs-1.0.0.tar.gz Mon Jan 17 2011
+===============================================================================
+* Bug fix: ECMA-119 directory names were truncated to 8 characters if
+           lowercase characters or full ASCII are allowed.
+* New API call iso_write_opts_set_untranslated_name_len()
+* New API call iso_write_opts_set_allow_dir_id_ext()
+* New API call iso_memory_stream_new(). (Was formely a private call.)
+
+libisofs-0.6.40.tar.gz Fri Dec 10 2010
+===============================================================================
+* New API call iso_write_opts_set_disc_label(), new system area type
+  3 = SUN Disk Label for booting SUN SPARC systems.
+* New API call iso_write_opts_set_will_cancel() avoids start of write thread
+  and is to be used to inquire the future image size.
+* New error reply code ISO_DISPLACE_ROLLOVER for external data sources with
+  address displacement.
+
+libisofs-0.6.38.tar.gz Sat Oct 23 2010
+===============================================================================
+* New API calls iso_write_opts_attach_jte() and iso_write_opts_detach_jte()
+  allow to use libjte for jigdo production.
+* New API call iso_write_opts_set_tail_blocks() for tail padding inside
+  ISO image.
+* New API call iso_image_generator_is_running() to learn when the write thread
+  is done.
+* New API calls iso_image_add_mips_boot_file(),
+  iso_image_get_mips_boot_files(), iso_image_give_up_mips_boot().
+* New API call iso_write_opts_set_partition_img() for appending e.g. a small
+  empty FAT12 filesystem which may be used on USB stick.
+
+libisofs-0.6.36.tar.gz Wed Sep 15 2010
+===============================================================================
+* New API function iso_write_opts_set_part_offset() controls creation of
+  an MBR with a first partiton table entry that bears non-zero start address.
+  A second set of volume descriptors and directory tree+tables gets created
+  which can be used to mount the image at the partition start.
+* Hiding all non-API symbols from the linker by use of --version-script
+* Automatic C++ detection in libisofs.h by using macro __cplusplus
+* Corrected several memory leaks and potential NULL pointer evaluations
+  in case of memory shortage.
+* Now with history of release notes in ./ChangeLog file.
+
+libisofs-0.6.34.tar.gz Tue Jun 29 2010
+===============================================================================
+* New API call iso_image_set_boot_catalog_hidden()
+* New API call iso_node_get_hidden()
+* New IsoHideNodeFlag bit LIBISO_HIDE_BUT_WRITE
+* New error code ISO_BOOT_NO_CATALOG
+* Opportunity to reduce compile line length by including "config.h"
+
+libisofs-0.6.32.tar.gz Mon May 03 2010
+===============================================================================
+* New API call iso_image_set_boot_catalog_weight()
+* New API call iso_image_add_boot_image()
+* New API calls el_torito_set_boot_platform_id(), el_torito_set_id_string(),
+  el_torito_set_selection_crit()
+* New API calls iso_image_get_all_boot_imgs(), el_torito_get_boot_platform_id(), 
+  el_torito_get_load_seg(), el_torito_get_load_size(), el_torito_get_bootable(), 
+  el_torito_get_id_string(), el_torito_get_selection_crit(),
+  el_torito_get_isolinux_options(), el_torito_get_boot_media_type()
+* New API call el_torito_seems_boot_info_table()
+
+libisofs-0.6.30.tar.gz Sat Apr 17 2010
+===============================================================================
+* New API call iso_write_opts_set_system_area() acts like mkisofs option -G.
+* New API call iso_write_opts_set_pvd_times().
+* Now able to produce a bootable System Area from an ISOLINUX mbr/isohdp
+  [fp]x*.bin file and an ISOLINUX El Torito bootable image (isolinux.bin).
+* Now able to produce the same Joliet names as mkisofs.
+* New API calls iso_read_opts_load_system_area() and 
+  iso_image_get_system_area() for multi-session handling of MBRs.
+
+libisofs-0.6.28.tar.gz Wed Feb 10 2010
+===============================================================================
+* Bug fix: Random checksum index could sneak in via boot catalog node 
+  and cause a SIGSEGV.
+* Improved compilability out of the box on FreeBSD.
+
+libisofs-0.6.26.tar.gz Wed Jan 20 2010
+===============================================================================
+* Bug fix: Invalid old checksum tags were preserved with
+  iso_write_opts_set_overwrite_buf(), if the new session produced no checksums.
+* The checksum buffer for the emerging image gets now marked as invalid if
+  image generation is canceled.
+* More graceful reaction on filesystems where ACL are not enabled but
+  nevertheless requested by the application.
+* Adaptions to problems reported by Debian buildd.
+
+libisofs-0.6.24.tar.gz Thu Oct 08 2009
+===============================================================================
+* Bug fix: Short Rock Ridge names got stripped of trailing blanks when loaded
+  and written again to a follow-up session. Long names could lose inner blanks.
+* Bug fix: Avoided to return NULL or single blanks as content of id strings by
+  API calls iso_image_get_volset_id() ... iso_image_get_biblio_file_id().
+* New API call iso_write_opts_set_scdbackup_tag().
+
+libisofs-0.6.22.tar.gz Tue Aug 25 2009
+===============================================================================
+* New API call iso_write_opts_set_record_md5() for writing MD5 sums.
+* New API call iso_read_opts_set_no_md5() for importing MD5 sums.
+* New API calls iso_image_get_session_md5() and iso_file_get_md5().
+* New API calls iso_md5_start(), iso_md5_compute(), iso_md5_clone(),
+  iso_md5_end(), iso_md5_match() for own MD5 computations.
+* New API call iso_util_decode_md5_tag() to recognize and parse checksum tags.
+* New API call iso_file_make_md5() to equip old file nodes with MD5.
+* Improvements with ./configure and its help text.
+
+libisofs-0.6.20.tar.gz Sun May 30 2009
+===============================================================================
+* Optional automatic detection and recording of hard link 
+  relations between files.
+* Support for restoring hard link relations by the app.
+
+libisofs-0.6.18.tar.gz Fri Apr 17 2009
+===============================================================================
+* Opportunity to set the input charset automatically from an eventual xattr
+  "isofs.cs" of the image root node.
+* New general filter API to inquire and remove filters.
+* Specialized APIs for installing filters which are based on external processes
+  or based on zlib.
+* New API call to inquire the original source path of a data file in an
+  emerging image.
+
+libisofs-0.6.16.tar.gz Wed Mar 11
+===============================================================================
+* Bug fix: The ".." directory record pointed to the same data block as the "."
+  entry.
+* Bug fix: The use of iso_write_opts_set_rrip_version_1_10() caused a wrong
+  size announcement in the CE entry which points to the ER signature 
+  of the image root.
+* New API call iso_write_opts_get_data_start() inquires the start address of
+  the data section of an emerging ISO image.
+* ISO image generation does not absolutely depend on the availability of
+  character set "WCHAR_T" with iconv_open(3) any more.
+
+libisofs-0.6.14.tar.gz Sat Feb 28 2009
+===============================================================================
+* New API calls iso_image_set_ignore_aclea(), iso_read_opts_set_no_aaip()
+  control import of ACL and xattr.
+* New API calls iso_write_opts_set_aaip(), iso_write_opts_set_aaip_susp_1_10()
+  control output of ACL and xattr into generated ISO image.
+* New API call iso_file_source_get_aa_string(), new function member
+  get_aa_string() in IsoFileSource_Iface allow to access opaquely encoded ACL 
+  and xattr. New function handle aaip_xinfo_func attaches aa_strings to 
+  IsoNode objects.
+* New API calls iso_node_get_acl_text(), iso_node_set_acl_text(),
+  iso_node_get_perms_wo_acl() allow inquiry and manipulation of ACLs in 
+  IsoNode objects.
+* New API calls iso_node_get_attrs(), iso_node_set_attrs() allow inquiry and
+  manipulation of xattr in IsoNode objects.
+
+libisofs-0.6.12.tar.gz Wed Nov 26 2008
+===============================================================================
+* New API calls iso_set_local_charset() and iso_get_local_charset()
+* New API calls iso_write_opts_set_rrip_version_1_10() and
+  iso_write_opts_set_dir_rec_mtime()
+* New API call el_torito_set_isolinux_options() allows to patch ISOLINUX boot
+  images and to generate a isohybrid MBR on the fly. Such an MBR makes the ISO
+  image bootable from disk-like hardware, e.g. from USB stick. The ISOLINUX 
+  boot image has to be of syslinux 3.72 or later to allow MBR generation.
+* Old API call el_torito_patch_isolinux_image() is deprecated now.
+
+libisofs-0.6.10.pl01.tar.gz Wed Nov 19 2008
+===============================================================================
+* Bug fix: If images generated by mkisofs were loaded then files of size 0
+  could share their size information with files that contain data. Ticket #144.
+* Bug fix: ISOLINUX boot images were patched suitable for El Torito but not for
+  an eventual MBR added by SYSLINUX script isohybrid.
+
+libisofs 0.6.10  Mon Oct 6 2008:
+===============================================================================
+* Bug fix: Patching of existing ISOLINUX boot images led to a SIGSEGV.
+* Bug fix: Adding a new ISOLINUX boot image or patching of an existing one
+  caused a read operation although writing had already begun.
+
+libisofs-0.6.8.tar.gz Thu Sep 18 2008
+===============================================================================
+* Support for very large data files in the ISO 9660 image 
+  (Level 3, multi-extent)
+* Bug fix: it was assumed that isolinux images were always a multiple of 4
+  bytes
+* New API call iso_image_update_sizes() to refresh recorded file sizes
+  immediately before image generation begins
+
+libisofs-0.6.6.tar.gz Sun Jun 1 2008
+===============================================================================
+* Bug fix: major,minor numbers of device files were not read properly from
+  existing images
+* Bug fix: iso_tree_path_to_node() returned 1 if a directory path component was
+  a non-directory file
+* New API call iso_special_get_dev() retrieves major, minor numbers of device
+  files
+
+libisofs-0.6.4.tar.gz Sun Apr 27 2008
+===============================================================================
+* Extended information: iso_node_add_xinfo()
+* New node iteration: iso_dir_find_children()
+* Custom image file content via iso_tree_add_new_file()
+* Missing feature added to map a disk file to an arbitrary image file path via
+  iso_tree_add_new_node()
+* Obtain image path of a node object via iso_tree_get_node_path()
+* Various bugfixes
+
+libisofs-0.6.2.1.tar.gz Thu Feb 14 2008
+===============================================================================
+* FIX: missing buffer.h preventing build from succeeding
+
+Libisofs 0.6.2
+===============================================================================
+* Initial release of new generation libisofs
+* Completely new API
+* Long term commitment to ABI libisofs.so.6
+

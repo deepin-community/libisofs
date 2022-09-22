@@ -1,0 +1,7 @@
+#!/bin/sh -x
+
+aclocal -I .
+libtoolize --copy --force
+autoconf
+
+automake --foreign --add-missing --copy --include-deps

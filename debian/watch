@@ -1,0 +1,4 @@
+version=3
+
+opts="pgpsigurlmangle=s/$/.sig/" \
+http://files.libburnia-project.org/releases/libisofs-(.*)\.tar\.gz

@@ -1,0 +1,34 @@
+FEATURES
+========
+
+
+TODO
+====
+
+#00001 (node.h) -> consider adding new timestamps to IsoTreeNode
+#00004 (libisofs.h) -> Add a get_mime_type() function.
+#00005 (node.c) -> optimize iso_dir_iter_take. 
+#00006 (libisofs.h) -> define more replace values when adding a node to a dir
+#00008 (data_dource.c) -> guard against partial reads
+#00009 (ecma119_tree.c/h) -> add true support for harlinks and inode numbers
+#00010 (buffer.c) -> optimize ring buffer
+#00011 (ecma119.c) -> guard against bad path table usage with more than 65535 dirs
+#00012 (fs_image.c) -> support follow symlinks on imafe filesystem
+#00013 (fs_image.c) -> check for unsupported flags when reading a dir record
+#00014 (fs_image.c) -> more sanity checks to ensure dir record info is valid
+#00015 (fs_image.c) -> take care of CD-ROM XA discs when reading SP entry
+#00016 (fs_image.c) -> handle non RR ER entries 
+#00017 (fs_image.c) -> take advantage of other atts of PVD
+#00018 (fs_image.c) -> check if there are more entries in the boot catalog
+#00019 (fs_image.c) -> set IsoImage attribs from Joliet SVD?
+#00020 (fs_image.c) -> handle RR info in Joliet tree
+#00021 (fs_image.c) -> handle RR info in ISO 9660:1999 tree
+#00022 (joliet.c) -> support relaxed constraints in joliet filenames
+#00024 (libisofs.h) -> option to convert names to lower case for iso reading
+#00025 (libisofs.h) -> support for merging old image files
+#00026 (libisofs.h) -> add support for "hidden" bootable images.
+#00027 (iso1999.h) -> Follow ISO 9660:1999 specs when sorting files
+
+FIXME
+=====
+

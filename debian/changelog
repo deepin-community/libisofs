@@ -1,0 +1,497 @@
+libisofs (1.5.4-1) unstable; urgency=low
+
+  [ Debian Janitor ]
+  * Drop unnecessary dependency on dh-autoreconf.
+  * Set branch from vcswatch in Vcs-Git URL.
+
+  [ Thomas Schmitt ]
+  * Removed libattr1-dev from Build-Depends.
+    (Closes: #953924)
+  * Changed Standards-Version to 4.5.1
+    No changes needed according to packaging-manuals/upgrading-checklist.txt
+  * New upstream version 1.5.4
+    + Bug fix: Large amounts of AAIP data or many long file names could cause
+               with zisofs an unreadable filesystem after the warning
+               "Calculated and written ECMA-119 tree end differ"
+    + Bug fix: Big-Endian MIPS Volume Header boot file size was rounded up to
+               full 2048. Thanks René Rebe.
+    + Bug fix: El Torito production failed if no catalog path is given and the
+               first boot image path contains no slash
+    + Bug fix: zisofs production was wrong on big-endian machines
+    + Bug fix: Apple Partition Map entries wrote uninitialized data
+    + Bug fix: Appended APM partitions without HFS+ production had start and
+               size 1
+    + Switched to usage of libjte-2.0.0
+    + Implemented production and reading of zisofs2 for files larger than
+      4 GiB - 1
+    + New struct iso_zisofs_ctrl version 2
+    + New API call iso_stream_get_zisofs_par()
+    + New API call iso_stream_zisofs_discard_bpt()
+    + New API call iso_image_zisofs_discard_bpt()
+    + New flag bits 8 to 15 in API call iso_node_zf_by_magic()
+    + New API call iso_zisofs_ctrl_susp_z2()
+    + New API call iso_read_opts_set_joliet_map(),
+      new default joliet_map=stripped
+    + New API calls iso_read_image_features_tree_loaded() and
+      iso_read_image_features_rr_loaded()
+  * fix (rules): exclude .la files
+
+ -- Thomas Schmitt <scdbackup@gmx.net>  Thu, 02 Sep 2021 11:54:33 +0200
+
+libisofs (1.5.2-1) unstable; urgency=low
+
+  * New upstream release
+    + New API calls iso_write_opts_set_part_type_guid(),
+      iso_write_opts_set_iso_type_guid()
+    + New API call iso_nowtime()
+    + New flag bit2 of iso_node_set_acl_text() to be verbose about failures
+    + Made libisofs ready for building out-of-source. Thanks Ross Burton.
+    + Bug fix: Appended GPT partitions were not covered by the protective MBR
+           partition
+    + Bug fix: Multi-session emulation spoiled GPT production.
+           "GPT partitions ... overlap". Regression towards 1.4.8
+    + Bug fix: Appending partitions 5 to 8 caused damaged ISO filesystems
+               if not for SUN disk label
+    + Bug fix: SIGSEGV happened if options bit 14 of
+           iso_write_opts_set_system_area() is set and no El Torito boot image
+           is defined
+  * Patch taken from upstream development
+    + Let libisofs demand libjte version >= 2.0.0 (libjte2 from jigit >= 1.22)
+      if desired as optional add-on. libjte2 is able to produce Jigdo with
+      SHA256 instead of MD5.
+  * Changed Build-Depends: "debhelper (>= 9)" to "debhelper-compat (= 12)" and
+    removed debian/compat by cme "fix" "dpkg".
+  * Changed Standards-Version to 4.4.1
+    No changes needed according to packaging-manuals/upgrading-checklist.txt
+  * Removed AUTHORS README NEWS from libisofs-doc.docs because already in -dev.
+  * control: remove dep on dh-autoreconf
+
+ -- Thomas Schmitt <scdbackup@gmx.net>  Sun, 01 Dec 2019 18:41:01 +0100
+
+libisofs (1.5.0-1) unstable; urgency=low
+
+  * New upstream release
+    + New API call iso_image_get_ignore_aclea(),
+      new iso_image_set_ignore_aclea() and iso_file_source_get_aa_string()
+      flag bit3 to import all xattr namespaces
+    + New API calls iso_image_was_blind_attrs(), iso_local_set_attrs_errno().
+    + New flag bit7 with iso_local_set_attrs() to avoid unnecessary write
+      attempts.
+    + New return value 2 of IsoFileSource.get_aa_string() and
+      iso_local_get_attrs().
+    + Now putting user defined padding after appended partitions.
+    + Bug fix: Add-on sessions with partition offset claimed too many blocks as
+               size. Regression of version 1.4.8.
+    + Bug fix: Long Joliet names without dot were mangled with one character
+               too many. Long Joliet names with leading dot were mangled one
+               char too short.
+    + Bug fix: Reading beyond array end for HFS+ production caused SIGSEGV with
+               FreeBSD 11 CLANG -O2. Thanks ASX of GhostBSD.
+  * Removed ${shlibs:Depends} from packages -dev and -dbg.
+  * Removed explicit -dbg package definition from control and rules.
+  * Changed Standards-Version to 4.2.1
+    No changes needed according to packaging-manuals/upgrading-checklist.txt
+  * Replaced in control file alioth repo URL by salsa repo URL:
+    + Vcs-Git: https://salsa.debian.org/optical-media-team/libisofs.git
+  * Copied debian/README.source and debian/gbp.conf from libburn
+
+ -- Thomas Schmitt <scdbackup@gmx.net>  Sun, 07 Oct 2018 12:15:02 +0200
+
+libisofs (1.4.8-1) unstable; urgency=low
+
+  * New upstream release
+    + Bug fix: iso_read_opts_set_no_rockridge() did not prevent reading of root
+               SUSP.
+    + Bug fix: Non-SUSP data in System Use Area prevented image loading if
+               Rock Ridge was enabled. Thanks to Jonathan Dowland.
+    + Bug fix: Protective MBR for GPT could emerge with boot flag set.
+    + Bug fix: Appended partitions of size >= 4 GiB led to abort with error
+               message "FATAL : ISO overwrite". Thanks to Sven Haardiek.
+    + Bug fix: Bit 15 of iso_write_opts_set_system_area did not work with
+               generic MBR.
+    + Bug fix: Keeping and patching of loaded boot images failed.
+               Regression by version 1.4.4.
+    + Bug fix: Program crashes by intentionally wrong ISO image input.
+               Found by American Fuzzy Lop and Jakub Wilk.
+               Closes: #872475, Closes: #872545, Closes: #872590,
+               Closes: #872761
+    + New API calls el_torito_set_full_load(), el_torito_get_full_load().
+    + New API call iso_write_opts_set_iso_mbr_part_type().
+  * Changed Standards-Version to 4.1.0
+    + Removed "Priority: extra" from Package: libisofs-dbg
+
+ -- Thomas Schmitt <scdbackup@gmx.net>  Fri, 15 Sep 2017 17:30:33 +0200
+
+libisofs (1.4.6-1) unstable; urgency=low
+
+  * New upstream release
+    + Bug fix: SIGSEGV by NULL when a data file was larger than ISO level
+               allows.
+    + Bug fix: Interpretation of 17 digit timestamps was wrong.
+    + New API calls iso_generate_gpt_guid() and iso_write_opts_set_gpt_guid().
+    + Made several pseudo-random ids reproducible by overriding volume
+      modification time.
+  * Changed Vcs-Browser URI in debian/control to https
+  * Adapted Priority of libisofs-dev and libisofs-doc to FTP Master overrides
+  * Marked libisofs-doc as Multi-Arch: foreign
+
+ -- Thomas Schmitt <scdbackup@gmx.net>  Sat, 17 Sep 2016 18:03:14 +0200
+
+libisofs (1.4.4-1) unstable; urgency=low
+
+  * New upstream release
+    + Bug fix: HFS+ production could cause MBR partition of type 0xEE without
+               GPT.
+    + Bug fix: Protective MBR was not produced if no System Area data are
+               given.
+    + Bug fix: Protective MBR was not recognized if partition is appended.
+    + Bug fix: The HFS+ filesystem was not marked in GPT of GRUB2 hybrid layout.
+    + Bug fix: HFS+ directories could announce more children than they actually
+               have.
+    + Bug fix: At image loading time GRUB2 MBR was not recognized if the
+               partition table is not the protective one as described by UEFI.
+    + Bug fix: Oversized text in ISO_SYSAREA_REPORT_DOC_ALPHA.
+               Thanks to Etienne Bergeron.
+    + New pseudo path for El Torito boot images:
+      --interval:appened_partition_N:all::
+    + New bit15 with options of iso_write_opts_set_system_area() to enforce
+      MBR bootable/active flag.
+    + New API calls iso_write_opts_set_appended_as_apm(),
+      iso_write_opts_set_part_like_isohybrid().
+    + Introduced image size tolerance of 300 kB in order to recognize SUN Disk
+      Label that was generated by genisoimage -B "...".
+    + Added "extern C" to libisofs.h
+    + Removed option --silent from libtool runs.
+  * Changed Standards-Version to 3.9.8
+    No changes needed according to packaging-manuals/upgrading-checklist.txt
+  * Applied cme "fix" "dpkg" to change debian/copyright header "Format:"
+
+ -- Thomas Schmitt <scdbackup@gmx.net>  Sun, 10 Jul 2016 08:22:34 +0200
+
+libisofs (1.4.2-3) unstable; urgency=low
+
+  * Changed Standards-Version to 3.9.7
+    No changes needed according to packaging-manuals/upgrading-checklist.txt
+  * Reacted on lintian hardening warnings by debian/rules variable
+    DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+ -- Thomas Schmitt <scdbackup@gmx.net>  Fri, 5 Feb 2016 18:54:58 +0200
+
+libisofs (1.4.2-2) unstable; urgency=low
+
+  * Multiarchify the library packages.
+    by Matthias Klose <doko@ubuntu.com>
+
+ -- Thomas Schmitt <scdbackup@gmx.net>  Sat, 30 Jan 2016 08:42:04 +0200
+
+libisofs (1.4.2-1) unstable; urgency=low
+
+  * New upstream release
+    + Bug fix: zisofs compression caused SIGSEGV (by reading) with files larger
+               than 524160 KiB.
+    + Bug fix: iso_node_get_name() of root node returned NULL pointer rather
+               than an empty string
+    + Bug fix: Names read from Joliet tree where stripped of trailing ";1"
+    + Now sorting the data file content extents by ECMA-119 tree, rather than
+      by the red-black tree which shall consolidate files with identical
+      source object.
+    + New API call iso_read_opts_set_ecma119_map().
+    + New AAIP variable isofs.nt records name truncation parameters.
+    + Rectified handling of oversized filenames by new API calls:
+      iso_image_set_truncate_mode, iso_image_get_truncate_mode,
+      iso_truncate_leaf_name, iso_image_set_node_name, iso_image_tree_clone,
+      iso_image_add_new_dir, iso_image_add_new_file, iso_image_add_new_special,
+      iso_image_add_new_symlink, iso_image_dir_get_node, iso_image_path_to_node
+    + Result of a Coverity audit: 50+ code changes, but no easy-to-trigger bugs
+  * Changed Priority of libisofs-dev and libisofs-doc to "extra"
+  * Removed unnecessary dependency of libisofs-dev on zlib1g-dev, libacl1-dev,
+    libattr1-dev
+
+ -- Thomas Schmitt <scdbackup@gmx.net>  Sat, 05 Dec 2015 14:58:21 +0200
+
+libisofs (1.4.0-3) unstable; urgency=low
+
+  * Silenced lintian complaint extended-description-is-probably-too-short
+
+ -- Thomas Schmitt <scdbackup@gmx.net>  Wed, 16 Sep 2015 17:43:37 +0200
+
+libisofs (1.4.0-2) unstable; urgency=low
+
+  * New upstream release
+    + Bug fix: Prevent allocation of empty hash tables. Thanks Richard Nolde.
+    + Bug fix: Prevent allocation of empty directory children lists.
+    + Bug fix: A SIGSEGV could happen when loading a faulty ISO filesystem.
+               Thanks to Jakub Wilk. (Closes: #774152)
+    + Bug fix: Fixed buffer overflow in demo/demo.c with gesture -iso_read.
+               Thanks to Jakub Wilk. (Closes: #774147).
+    + Bug fix: Rock Ridge Continuation Area could be produced crossing a block
+               boundary. This is heavily disliked by the Linux kernel and
+               spoils the representation of directories which contain many
+               symbolic links.
+    + Bug fix: Only 128 bytes of an emerging GPT header block were zeroized.
+    + Bug fix: Fixed a typo in message of make install. (Closes: #774140)
+    + Bug fix: Made declarations of make_isolinux_mbr() consistent.
+               Thanks to Michael Tautschnig. (Closes: #751501)
+    + Encoding HFS+ names in UTF-16 rather than UCS-2.
+    + Giving sort weight 2 as default to El Torito boot images.
+    + Increased default weight of El Torito boot catalog to 1 billion.
+    + Improved handling of cylinder alignment if the resulting image size is
+      not divisible by 2048. Old behavior was to not align. New is to pad up
+      by a few blocks of 512 bytes.
+    + New API calls iso_image_report_el_torito() and
+      iso_image_report_system_area().
+    + New API call iso_write_opts_set_appended_as_gpt() and marking of
+      appended partitions in GPT if GPT emerges for other reasons.
+    + New system area type 6 = DEC Alpha SRM boot sector.
+      New API calls iso_image_set_alpha_boot(), iso_image_get_alpha_boot().
+      Thanks to Helge Deller.
+    + New API object iso_interval_reader. Enabling flag bits for older
+      API calls iso_write_opts_set_prep_img(), iso_write_opts_set_efi_bootp(),
+      and iso_write_opts_set_partition_img().
+  * Removed dependency on doxygen
+  * Corrected license of upstream to GPL-2+ (from GPL-2)
+  * Migrated to debhelper 9 and applied changes proposed by cme.
+  * Added myself to Uploaders after becoming co-admin of the maintainer project
+
+ -- Thomas Schmitt <scdbackup@gmx.net>  Wed, 09 Sep 2015 15:07:45 +0200
+
+libisofs (1.3.2-1.1) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * Non-maintainer upload.
+
+  [ Colin Watson ]
+  * Use dh-autoreconf to regenerate configure script (Closes: #732612).
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sat, 30 Aug 2014 02:00:13 +0200
+
+libisofs (1.3.2-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- George Danchev <danchev@spnet.net>  Sun, 08 Sep 2013 14:59:07 +0200
+
+libisofs (1.2.2-1) unstable; urgency=low
+
+  * New upstream release
+    + Bug fix: Directory name mapping to ISO level 1 was too
+      liberal if iso_write_opts_set_allow_dir_id_ext() was enabled
+    + New API call iso_write_opts_set_rr_reloc()
+    + New API call iso_write_opts_set_allow_7bit_ascii()
+    + Improved standards compliance for ISO level 1 names
+      with partly relaxed constraints.
+  * Remove Mats Erik Andersson from Uploaders as he requested.
+  * Use the new URL in copyright Format field.
+
+ -- George Danchev <danchev@spnet.net>  Tue, 03 Apr 2012 16:25:04 +0300
+
+libisofs (1.2.0-1) unstable; urgency=low
+
+  * New upstream release
+    +Extended influence of iso_write_opts_set_dir_rec_mtime()
+     to Joliet and ISO 9660:1999.
+  * Convert debian/copyright to DEP5 format.
+
+ -- George Danchev <danchev@spnet.net>  Wed, 01 Feb 2012 15:04:25 +0200
+
+libisofs (1.1.6-1) unstable; urgency=low
+
+  * New upstream release
+    + Bug fix: On Solaris: False out-of-memory errors when
+      writing images.
+    + Bug fix: On FreeBSD: No ACLs were recorded.
+    + Bug fix: ACL entries of groups and of user id 0 were
+      not properly recorded and cannot be restored.
+    + Bug fix: On FreeBSD: The function for restoring ACLs
+      and xattr returned error, even if no xattr were to be
+      restored.
+    + New API call iso_local_attr_support()
+    + Enabled recording and restoring of extattr on FreeBSD.
+
+ -- George Danchev <danchev@spnet.net>  Thu, 29 Sep 2011 15:51:13 +0300
+
+libisofs (1.1.4-1) unstable; urgency=low
+
+  * New upstream release
+    + Bug fix: The function for restoring ACLs and xattr returned error
+      on systems other than Linux and FreeBSD, even if nothing was to be
+      restored.
+
+ -- George Danchev <danchev@spnet.net>  Sun, 14 Aug 2011 13:58:46 +0300
+
+libisofs (1.1.2-1) unstable; urgency=low
+
+  * New upstream release
+    + New API call iso_image_get_bootcat(), which is used later
+      in libisoburn/xorriso to properly extract boot catalogs.
+
+ -- George Danchev <danchev@spnet.net>  Sun, 10 Jul 2011 13:06:09 +0300
+
+libisofs (1.1.0-1) unstable; urgency=low
+
+  * New upstream release
+       + Bugfix: Padding as of iso_write_opts_set_tail_blocks()
+         was added only after cylinder alignment as of
+         iso_write_opts_set_system_area() and
+	 thus spoiled this alignment.            Closes: #630607
+  * [GD] Drop cdbs, switch to dh
+       + use libisofs-doc.docs rather than libisofs-doc.install.
+       + filter -doc around dh_listpackages.
+       + compat 8, require debhelper >=8.
+  * [GD] switch to 3.0 (quilt).
+  * [GD] Add AUTHORS, README, NEWS to *.docs.
+  * [GD] Move doxygen to Build-Depends-Indep.
+  * [GD] Install demo/*.c via libisofs-doc.examples.
+
+ -- George Danchev <danchev@spnet.net>  Sun, 19 Jun 2011 16:57:46 +0300
+
+libisofs (1.0.8-1) unstable; urgency=low
+
+  * New upstream release (a bugfix release, nothing critical).
+  * [GD] Drop graphviz from build-depends, not used anymore.
+  * [GD] Add Mats Erik Andersson to Uploaders.
+  * [GD] Standards-Version: 3.9.2 (no changes needed).
+  * [GD] Consistent use of 'Copyright ©' in debian/copyright.
+  * [GD] Drop Section: libs from libisofs6 package, since it is
+         inherited from the source section anyway (avoids redundancy).
+
+ -- George Danchev <danchev@spnet.net>  Fri, 13 May 2011 10:57:46 +0300
+
+libisofs (1.0.6-2) unstable; urgency=low
+
+  * Build with CFLAGS=-g -O0 on armel armhf
+    to work around a gcc bug.            Closes: #622725
+    (Thanks to Konstantinos Margaritis for the patch)
+
+ -- George Danchev <danchev@spnet.net>  Thu, 14 Apr 2011 13:03:04 +0300
+
+libisofs (1.0.6-1) unstable; urgency=low
+
+  * New upstream release.
+  * libisofs-dev:
+    + do not install *.la files anymore. Closes: #621672
+
+ -- George Danchev <danchev@spnet.net>  Fri, 08 Apr 2011 18:28:16 +0300
+
+libisofs (1.0.4-3) unstable; urgency=low
+
+  * Enable JTE (Jigdo Template Export) support via
+    libjte, which is now part of jigit upstream v1.17.
+    + Build depend on libjte-dev.      Closes: #567636
+  * Fix typo in package description.   Closes: #601914
+  * Remove Simon Huggins from maintainers
+    as he requested. (Thank you for your work)
+
+ -- George Danchev <danchev@spnet.net>  Tue, 29 Mar 2011 20:57:42 +0300
+
+libisofs (1.0.4-2) unstable; urgency=low
+
+  * Drop dependency_libs from .la files. Closes: #619669
+    Thanks to Steve Langasek.
+  * Standards version 3.9.1 (no changes needed).
+
+ -- George Danchev <danchev@spnet.net>  Sat, 26 Mar 2011 09:19:47 +0200
+
+libisofs (1.0.4-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- George Danchev <danchev@spnet.net>  Sun, 13 Mar 2011 17:56:58 +0200
+
+libisofs (0.6.32-2) unstable; urgency=low
+
+  * Do not install gifs in the doc package, since newer doxygen
+    does not generate tab*.gif anymore. Closes: #590403
+
+ -- George Danchev <danchev@spnet.net>  Mon, 26 Jul 2010 21:12:48 +0300
+
+libisofs (0.6.32-1) unstable; urgency=low
+
+  * New upstream release.
+  * Added debian/source/format
+  * Standards-Version 3.8.4 (no changes needed)
+
+ -- George Danchev <danchev@spnet.net>  Tue, 04 May 2010 18:56:29 +0300
+
+libisofs (0.6.26-2) unstable; urgency=low
+
+  * libisofs-dev depends on zlib1g-dev, libacl1-dev, libattr1-dev.
+    Closes: #567356
+
+ -- George Danchev <danchev@spnet.net>  Thu, 04 Feb 2010 07:26:59 +0000
+
+libisofs (0.6.26-1) unstable; urgency=low
+
+  * New upstream release
+     Bugfixes and more graceful reaction on filesystems where ACL
+     are not enabled but nevertheless requested by the application.
+  * New build depends added: zlib1g-dev, libacl1-dev, libattr1-dev
+
+ -- George Danchev <danchev@spnet.net>  Sun, 24 Jan 2010 09:56:41 +0200
+
+libisofs (0.6.24-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Simon Huggins <huggie@earth.li>  Wed, 14 Oct 2009 17:43:03 +0100
+
+libisofs (0.6.22-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Simon Huggins <huggie@earth.li>  Sun, 04 Oct 2009 16:51:57 +0100
+
+libisofs (0.6.16-1) unstable; urgency=low
+
+  [ Simon Huggins ]
+  * New upstream release
+  * Ship a symbols file
+  * Bump debhelper dependency to please lintian
+  * Doesn't actually need libburn build-dep
+
+ -- Debian Libburnia packagers <pkg-libburnia-devel@lists.alioth.debian.org>  Mon, 16 Mar 2009 20:55:50 +0000
+
+libisofs (0.6.14-1) unstable; urgency=low
+
+  [ Simon Huggins ]
+  * New upstream release
+  * Also ship the tutorial and AAIP docs in -doc.
+
+ -- Debian Libburnia packagers <pkg-libburnia-devel@lists.alioth.debian.org>  Sat, 28 Feb 2009 17:47:36 +0000
+
+libisofs (0.6.12-1) unstable; urgency=low
+
+  [ Simon Huggins ]
+  * New upstream release
+
+  [ Matthew Rosewarne ]
+  * Added Vcs-Svn and Vcs-Browser fields.
+
+ -- Debian Libburnia packagers <pkg-libburnia-devel@lists.alioth.debian.org>  Sat, 28 Feb 2009 13:47:50 +0000
+
+libisofs (0.6.6-1) unstable; urgency=low
+
+  * New upstream release. (Closes: #490592)
+
+  [ Matthew Rosewarne ]
+  * Bumped Debhelper compat to 6.
+  * Bumped Standards-Version to 3.8.0.
+  * Added -dbg package.
+
+ -- Debian Libburnia packagers <pkg-libburnia-devel@lists.alioth.debian.org>  Sun, 13 Jul 2008 00:43:21 -0400
+
+libisofs (0.6.2.1-1) unstable; urgency=low
+
+  [ Simon Huggins ]
+  * Initial release
+    - part of its own source package now libburn is sane again.
+
+  [ Mario Danic ]
+  * corrected email of initial debian packager in copyright
+
+  [ Matthew Rosewarne ]
+  * Rename libisofs6-doc to libisofs-doc.
+  * Tidy up packaging.
+  * Add watch file.
+
+ -- Debian Libburnia packagers <pkg-libburnia-devel@lists.alioth.debian.org>  Thu, 28 Feb 2008 10:50:27 +0000
