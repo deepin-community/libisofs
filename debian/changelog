@@ -1,3 +1,9 @@
+libisofs (1.5.4-2) unstable; urgency=medium
+
+  * Rebuild with LTO enabled (dpkg vendor feature optimize/lto).
+
+ -- tunaichao <tunaichao@uniontech.com>  Thu, 10 Sep 2026 18:28:19 +0800
+
 libisofs (1.5.4-1) unstable; urgency=low
 
   [ Debian Janitor ]
